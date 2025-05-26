@@ -1,1 +1,0 @@
-# Proyek-Pertama-ML-Terapan
