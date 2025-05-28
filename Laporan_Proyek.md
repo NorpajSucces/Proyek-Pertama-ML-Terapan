@@ -95,26 +95,92 @@ Dataset yang digunakan berisi 1000 baris dan 14 kolom.
 1.  **Penghapusan Kolom Identifier:**
     * **Teknik:** Kolom `ID` dan `No_Pation` dihapus.
     * **Alasan:** Tidak memiliki nilai prediktif.
-2.  **Encoding Variabel Target (`CLASS`):**
-    * **Teknik:** `LabelEncoder` digunakan untuk mengubah `CLASS` (misal, 'N', 'P', 'Y') menjadi numerik (0, 1, 2).
-    * **Alasan:** Algoritma machine learning memerlukan input numerik.
-3.  **Encoding Fitur Kategorikal (`Gender`):**
+
+2.  **Mengatasi Kolom (`CLASS`):**
+    * **Tujuan:** bertujuan untuk membuat kolom 'CLASS' lebih bersih, konsisten, dan lebih mudah diinterpretasikan.
+    ```
+    # mengubah kolom 'CLASS' type string
+    df['CLASS'] = df['CLASS'].astype(str)
+    df['CLASS'] = df['CLASS'].str.strip()
+
+    #map the values
+    class_mapping = {
+       'N': 'Non-diabetic',
+       'P': 'Prediabetic',
+       'Y': 'Diabetic'
+      }
+      
+      df['CLASS'] = df['CLASS'].map(class_mapping)
+      print(df['CLASS'].unique())
+
+    # Mengubah kolom CLASS Menjadi kategori
+    df['CLASS'] = df['CLASS'].astype('category')
+    ```
+    * Sebelum
+         | CLASS	| count |
+         |--------|-------|
+         | Y      | 840   |
+         | N      | 102   |
+         | P      | 53    |
+         | Y      | 4     |
+         | N      | 1     |
+    * Sesudah
+      
+         | CLASS	      | count   |
+         |--------------|---------|
+         | Diabetic	   | 844     |
+         | Non-diabetic | 103     |
+         | Prediabetic	| 53      |
+
+3.  **Mengatasi Kolom (`Gender`):**
+    * **Tujuan:** bertujuan untuk membuat kolom 'Gender' lebih bersih, konsisten.
+   ```
+    df['Gender'] = df['Gender'].str.strip().str.upper()
+
+    # Mengubah kolom Gender menjadi kategori
+    df['Gender'] = df['Gender'].astype('category')
+
+   ```
+   * Sebelum
+        | Gender | Count |
+        |--------|-------|
+        | M      | 565   |
+        | F      | 434   |
+        | f      | 1     |
+
+   * Sesudah
+        | Gender | Count |
+        |--------|-------|
+        | M      | 565   |
+        | F      | 435   |
+    
+      
+4.  **Encoding Fitur Kategorikal (`Gender`):**
     * **Teknik:** `LabelEncoder` digunakan untuk mengubah `Gender` (misal, 'Male', 'Female') menjadi numerik (0, 1).
+    * **Alasan:** Algoritma machine learning memerlukan input numerik.
+      
+5.  **Encoding Variabel Target (`CLASS`):**
+    * **Teknik:** `LabelEncoder` digunakan untuk mengubah `CLASS` (misal, 'N', 'P', 'Y') menjadi numerik (0, 1, 2).
     * **Alasan:** Fitur input juga harus numerik.
+      
     ```python
     # label_encoder = LabelEncoder()
     # df['Gender'] = label_encoder.fit_transform(df['Gender'])
     # df['CLASS'] = label_encoder.fit_transform(df['CLASS'])
     ```
-4.  **Pemisahan Fitur (X) dan Target (y):**
+      
+6.  **Pemisahan Fitur (X) dan Target (y):**
     * **Teknik:** Dataset dipisahkan menjadi matriks fitur `X` dan vektor target `y`.
     * **Alasan:** Standar untuk membedakan variabel independen dan dependen.
-5.  **Pembagian Data menjadi Set Latih dan Uji:**
-    * **Teknik:** Dataset dibagi menjadi 70% data latih dan 30% data uji (`test_size=0.3`, `random_state=42`).
-    * **Alasan:** Untuk melatih model dan mengevaluasinya pada data yang belum pernah dilihat.
     ```python
     # X = df.drop('CLASS', axis=1)
     # y = df['CLASS']
+    ```
+      
+7.  **Pembagian Data menjadi Set Latih dan Uji:**
+    * **Teknik:** Dataset dibagi menjadi 70% data latih dan 30% data uji (`test_size=0.3`, `random_state=42`).
+    * **Alasan:** Untuk melatih model dan mengevaluasinya pada data yang belum pernah dilihat.
+    ```python
     # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
     ```
 ---
@@ -124,6 +190,7 @@ Dataset yang digunakan berisi 1000 baris dan 14 kolom.
 Tiga algoritma klasifikasi diimplementasikan: Decision Tree, Random Forest, dan Logistic Regression.
 
 1.  **Decision Tree Classifier:**
+    * **Cara Kerja:** Decision Tree bekerja dengan membagi data menjadi cabang-cabang berdasarkan fitur yang memberikan informasi paling baik dalam membedakan kelas target. Proses ini dilakukan secara rekursif dengan memilih fitur terbaik (berdasarkan Gini Impurity atau Entropy), hingga mencapai kondisi berhenti seperti kedalaman maksimum atau jumlah data minimum.
     * **Parameter:** `random_state=42`, `max_depth=5`.
     * **Kelebihan:** Mudah diinterpretasi, cepat.
     * **Kekurangan:** Cenderung overfitting jika tidak dibatasi.
@@ -131,7 +198,8 @@ Tiga algoritma klasifikasi diimplementasikan: Decision Tree, Random Forest, dan 
     # dt_classifier = DecisionTreeClassifier(random_state=42, max_depth=5)
     # dt_classifier.fit(X_train, y_train)
     ```
-2.  **Random Forest Classifier:**
+3.  **Random Forest Classifier:**
+    * **Cara Kerja:** Random Forest adalah metode ensemble yang menggabungkan banyak Decision Tree. Setiap pohon dibangun dari sampel acak data dan subset fitur yang berbeda, dan hasil prediksi ditentukan berdasarkan voting mayoritas. Teknik ini membantu mengurangi overfitting dan meningkatkan generalisasi.
     * **Parameter:** `n_estimators=100`, `random_state=42`.
     * **Kelebihan:** Lebih robust terhadap overfitting, akurasi tinggi.
     * **Kekurangan:** Kurang interpretatif, lebih banyak sumber daya.
@@ -139,7 +207,8 @@ Tiga algoritma klasifikasi diimplementasikan: Decision Tree, Random Forest, dan 
     # rf_model = RandomForestClassifier(n_estimators=100, random_state=42)
     # rf_model.fit(X_train, y_train)
     ```
-3.  **Logistic Regression:**
+5.  **Logistic Regression:**
+    * **Cara Kerja**: Logistic Regression memodelkan probabilitas suatu kelas berdasarkan kombinasi linear dari fitur, yang kemudian dilewatkan ke dalam fungsi sigmoid. Fungsi ini mengubah nilai output menjadi rentang antara 0 dan 1, sehingga cocok digunakan untuk klasifikasi. Untuk kasus multi-kelas, digunakan pendekatan One-vs-Rest (OvR).
     * **Parameter:** `random_state=42`, `max_iter=1000`.
     * **Kelebihan:** Sederhana, cepat, output probabilitas.
     * **Kekurangan:** Asumsi linearitas, kurang baik untuk pola non-linear.
